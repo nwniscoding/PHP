@@ -32,16 +32,16 @@ abstract class Driver{
 	 * Connect to the database using the provided configuration.
 	 *
 	 * @return bool True on successful connection, false otherwise.
+	 * 
 	 */
-	public function connect(): bool{
-		return $this->config->apply(fn(array $configs) => $this->loadConfig($configs));
+	public function connect(): void{
+		$this->config->apply(fn(array $configs) => $this->loadConfig($configs));
 	}
 
 	/**
 	 * Load the database configuration and establish a connection.
 	 *
 	 * @param array<string, mixed> $configs The configuration parameters.
-	 * @return bool True on successful connection, false otherwise.
 	 */
-	abstract protected function loadConfig(array $configs): bool;
+	abstract protected function loadConfig(array $configs): void;
 }

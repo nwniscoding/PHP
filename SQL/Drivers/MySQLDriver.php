@@ -13,17 +13,10 @@ final class MySQLDriver extends Driver{
 	 * Load the configuration and establish a PDO connection.
 	 *
 	 * @param array<string, mixed> $configs The configuration parameters.
-	 * @return bool True on successful connection, false otherwise.
+	 * @throws PDOException if the connection fails.
 	 */
-	protected function loadConfig(array $configs): bool{
-		try{
-			$dsn = $this->config->getDSN();
-			$this->connection = new PDO($dsn, $configs["username"], $configs["password"]);
-
-			return true;
-		}
-		catch(PDOException $e){
-			return false;
-		}
+	protected function loadConfig(array $configs): void{
+		$dsn = $this->config->getDSN();
+		$this->connection = new PDO($dsn, $configs["username"], $configs["password"]);
 	}
 }

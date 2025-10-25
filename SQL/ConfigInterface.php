@@ -24,8 +24,7 @@ interface ConfigInterface{
 	/**
 	 * Apply hidden configuration values to a given function.
 	 * 
-	 * @param callable(array<string, mixed>): void|array $fn The function or method to apply the credentials to.
-	 * @return bool True on success, false on failure.
+	 * @param callable(array<string, mixed>): void $fn The function or method to apply the credentials to.
 	 */
-	public function apply(Closure|array $fn): bool;
+	public function apply(Closure|array $fn): void;
 }

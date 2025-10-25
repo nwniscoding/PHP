@@ -95,8 +95,8 @@ final class MySQLConfig implements ConfigInterface{
 	 * @param callable(array<string, mixed>): bool $fn The function to apply the credentials to.
 	 * @return bool True on success, false on failure.
 	 */
-	public function apply(Closure|array $fn): bool{
-		return $fn([
+	public function apply(Closure|array $fn): void{
+		$fn([
 			"username" => $this->username->getValue(),
 			"password" => $this->password->getValue(),
 			"host" => $this->host,
