@@ -7,7 +7,7 @@ final class Path{
 	 * @param string $path The path to normalize.
 	 * @return string The normalized path.
 	 */
-	private static function normalize(string $path): string{
+	public static function normalize(string $path): string{
 		$path = strtr($path, "\\", "/");
 		$absolute = $path !== "" && $path[0] === "/";
 		$stack = [];
