@@ -1,0 +1,104 @@
+# PHP-specific ignores
+
+# Composer
+/vendor/
+/composer.phar
+
+# Runtime / environment
+.env
+.env.*.local
+.env.local
+.env.backup
+/.phpenv
+/.php-version
+
+# Dependency managers
+/node_modules/
+/package-lock.json
+/yarn.lock
+/pnpm-lock.yaml
+
+# Build / distribution
+/build/
+dist/
+out/
+coverage/
+composer.lock
+
+# PHPUnit / testing
+.phpunit.result.cache
+phpunit.xml.cache
+/phpunit.xml
+
+# Logs and caches
+*.log
+logs/
+log/
+tmp/
+temp/
+.cache/
+.cache-*
+/var/cache/
+/var/log/
+/bootstrap/cache/
+/storage/*.key
+/storage/debugbar/*
+/storage/logs/
+/storage/framework/cache/data
+/storage/framework/sessions
+/storage/framework/views
+
+# SQLite and other local DB files
+*.sqlite
+*.sqlite3
+*.db
+*.sql
+*.dump
+
+# PHPCS / quality tools
+/.php_cs.cache
+/.phpcs.cache
+/.php_cs.dist
+
+# Documentation
+/doc/html/
+/build/docs/
+/docs/_build/
+
+# IDEs and editors
+/.idea/
+/.vscode/
+/*.sublime-project
+/*.sublime-workspace
+*.swp
+*~.nib
+*.tmproj
+.project
+.settings/
+*.iml
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Archives and compressed
+*.zip
+*.tar.gz
+*.tar
+*.rar
+*.7z
+*.gz
+
+# Private keys / secrets
+*.pem
+*.key
+*.p12
+*.crt
+
+# Misc generated files
+*.cache
+*.coverage
+*.report
+vendor-bin/
+!.gitkeep
