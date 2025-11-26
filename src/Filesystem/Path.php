@@ -3,6 +3,11 @@ namespace nwniscoding\Filesystem;
 
 final class Path{
 	/**
+	 * Private constructor to prevent instantiation.
+	 */
+	private function __construct(){}
+
+	/**
 	 * Normalize a file system path.
 	 * @param string $path The path to normalize.
 	 * @return string The normalized path.
@@ -216,5 +221,59 @@ final class Path{
 		}
 
 		return false;
+	}
+
+	public function listFiles(string $path): array{
+		if(!is_dir($path)) return [];
+
+		$files = [];
+		$items = array_diff(scandir($path), [".", ".."]);
+
+		foreach($items as $item){
+			$itemPath = self::join($path, $item);
+
+			if(is_file($itemPath)){
+				$files[] = $itemPath;
+			}
+			elseif(is_dir($itemPath)){
+				$files = array_merge($files, self::listFiles($itemPath));
+			}
+		}
+
+		return $files;
+	}
+
+	public static function listDirs(string $path): array{
+		if(!is_dir($path)) return [];
+
+		$dirs = [];
+		$items = array_diff(scandir($path), [".", ".."]);
+
+		foreach($items as $item){
+			$itemPath = self::join($path, $item);
+
+			if(is_dir($itemPath)){
+				$dirs[] = $itemPath;
+				$dirs = array_merge($dirs, self::listDirs($itemPath));
+			}
+		}
+
+		return $dirs;
+	}
+
+	public static function write(string $path, string $data): bool{
+		$dir = dirname($path);
+
+		if(!is_dir($dir) && !mkdir($dir, 0777, true)) return false;
+
+		return file_put_contents($path, $data) !== false;
+	}
+
+	public static function read(string $path): ?string{
+		if(!is_file($path)) return null;
+
+		$content = file_get_contents($path);
+
+		return $content === false ? null : $content;
 	}
 }
