@@ -111,18 +111,17 @@ class ClientHello extends Handshake{
     $ext = new Buffer();
 
     foreach($this->extensions as $extension){
-      $ext_data = $extension->encode();
       $ext->setU16($extension->getType()->value);
-      $ext->setU16(\strlen($ext_data));
-      $ext->write($ext_data);
+      $ext->setU16(\strlen($extension));
+      $ext->write($extension);
     }
 
     $buffer->setU16($ext->getCursor());
     $buffer->write($ext);
 
+    $total = \strlen($buffer->getData()) - 4;
+    
     $buffer->setCursor(1);
-    $total = strlen($buffer->getData());
-
     $buffer->setU8($total >> 16 & 0xFF);
     $buffer->setU8($total >> 8 & 0xFF);
     $buffer->setU8($total & 0xFF);
@@ -144,6 +143,8 @@ class ClientHello extends Handshake{
     for($i = 0, $cipher_size = $data->getU16(); $i < $cipher_size; $i += 2){
       $client_hello->cipher_suites[] = CipherEnum::from($data->getU16());
     }
+
+    $data->move(2);
 
     for($i = 0, $ext_size = $data->getU16(); $i < $ext_size;){
       $e_type = $data->getU16();
