@@ -28,8 +28,9 @@ class ClientKeyExchange extends Handshake{
 
   public static function decode(string $data): self{
     $data = new Buffer($data);
+    $type = $data->getU8();
     $length = $data->getU8() << 16 | $data->getU8() << 8 | $data->getU8();
-    $text = $data->read($length);
+    $text = $data->read($data->getU16());
 
     return new self($text);
   }

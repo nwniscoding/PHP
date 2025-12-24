@@ -2,8 +2,9 @@
 namespace nwniscoding\TLS\Handshakes;
 
 use nwniscoding\TLS\Enums\HandshakeEnum;
+use Stringable;
 
-abstract class Handshake{
+abstract class Handshake implements Stringable{
   public function __construct(protected HandshakeEnum $type){}
 
   public function getType(): HandshakeEnum{

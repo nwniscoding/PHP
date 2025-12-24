@@ -2,6 +2,7 @@
 namespace nwniscoding\TLS\Handshakes;
 
 use nwniscoding\TLS\Enums\CipherEnum;
+use nwniscoding\TLS\Enums\HandshakeEnum;
 use nwniscoding\TLS\Enums\VersionEnum;
 use nwniscoding\TLS\Extensions\ExtensionFactory;
 use nwniscoding\TLS\Utils\Buffer;
@@ -18,6 +19,7 @@ class ServerHello extends Handshake{
   private array $extensions = [];
 
   public function __construct(VersionEnum $version, ?CipherEnum $cipher = null, ?string $session_id = null){
+    parent::__construct(HandshakeEnum::SERVER_HELLO);
     $this->version = $version;
     $this->random = openssl_random_pseudo_bytes(32);
     $this->session_id = $session_id;
@@ -30,6 +32,10 @@ class ServerHello extends Handshake{
 
   public function getVersion(): VersionEnum{
     return $this->version;
+  }
+
+  public function getRandom(): string{
+    return $this->random;
   }
 
   public function setSessionID(string $session_id): void{
@@ -63,14 +69,22 @@ class ServerHello extends Handshake{
 
     $buffer->setU16($this->cipher->value);
 
-    $buffer->setU16(1 << 8);
+    $buffer->setU8(0);
 
     if(\count($this->extensions) > 0){
+      $ext_buffer = new Buffer;
+
       foreach($this->extensions as $extension){
-        $buffer->setU16($extension->getType()->value);
-        $buffer->setU16(\strlen($extension));
-        $buffer->write($extension);
+        $ext_buffer->setU16($extension->getType()->value);
+        $ext_buffer->setU16(\strlen($extension));
+        $ext_buffer->write($extension);
       }
+
+      $buffer->setU16(\strlen($ext_buffer));
+      $buffer->write($ext_buffer);
+    }
+    else{
+      $buffer->setU16(0);
     }
 
     $total = \strlen($buffer->getData()) - 4;
@@ -95,7 +109,7 @@ class ServerHello extends Handshake{
     $server_hello->session_id = $data->read($data->getU8());
     $server_hello->cipher = CipherEnum::from($data->getU16());
 
-    $data->move(2);
+    $data->move(1);
 
     for($i = 0, $ext_size = $data->getU16(); $i < $ext_size;){
       $e_type = $data->getU16();
