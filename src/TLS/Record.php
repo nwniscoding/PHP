@@ -11,7 +11,7 @@ class Record{
   public function __construct(
     private ?RecordEnum $type = null,
     private ?VersionEnum $version = null,
-    private ?Stringable $data = null
+    private Stringable|string|null $data = null
   ){}
 
   public function getType(): ?RecordEnum{
@@ -66,13 +66,21 @@ class Record{
           HandshakeEnum::CLIENT_HELLO => Handshakes\ClientHello::decode($str),
           HandshakeEnum::SERVER_HELLO => Handshakes\ServerHello::decode($str),
           HandshakeEnum::SERVER_HELLO_DONE => Handshakes\ServerHelloDone::decode($str),
+          HandshakeEnum::CLIENT_KEY_EXCHANGE => Handshakes\ClientKeyExchange::decode($str),
           default => null
         };
+      }
+      else{
+        $record->data = $str;
       }
 
       $arr[] = $record;
     }
 
     return $arr;
+  }
+
+  public function __tostring(): string{
+    return $this->encode();
   }
 }
