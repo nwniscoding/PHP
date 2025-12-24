@@ -2,8 +2,9 @@
 namespace nwniscoding\TLS\Utils;
 
 use OutOfRangeException;
+use Stringable;
 
-class Buffer{
+class Buffer implements Stringable{
   private string $data;
 
   private int $end;
