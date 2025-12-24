@@ -2,6 +2,7 @@
 namespace nwniscoding\TLS\Extensions;
 
 use nwniscoding\TLS\Enums\ExtensionEnum;
+use nwniscoding\TLS\Utils\Buffer;
 
 class RenegotiationInfoExtension extends Extension{
   private string $data;
@@ -16,8 +17,8 @@ class RenegotiationInfoExtension extends Extension{
   }
 
   public static function decode(string $data): self{
-    $length = \ord($data[0]);
-    $renegotiation_data = \substr($data, 1, $length);
+    $data = new Buffer($data);
+    $renegotiation_data = \substr($data, 1, $data->getU8());
     return new self($renegotiation_data);
   }
 

@@ -14,6 +14,8 @@ class ExtensionFactory{
       ExtensionEnum::RENEGOTIATION_INFO => RenegotiationInfoExtension::decode($data),
       ExtensionEnum::EXTENDED_MASTER_SECRET => ExtendedMasterSecretExtension::decode($data),
       ExtensionEnum::ENCRYPT_THEN_MAC => EncryptThenMacExtension::decode($data),
+      ExtensionEnum::SESSION_TICKET => SessionTicketExtension::decode($data),
+      ExtensionEnum::SIGNATURE_ALGORITHMS => SignatureAlgorithmExtension::decode($data),
       default => new UnknownExtension($ext, $data),
     };
   }

@@ -15,4 +15,8 @@ abstract class Extension{
   public abstract function getData(): mixed;
 
   public static abstract function decode(string $data): self;
+
+  public function __tostring(): string{
+    return $this->encode();
+  }
 }
