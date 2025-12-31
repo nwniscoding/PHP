@@ -4,6 +4,7 @@ namespace TLS\Handshakes;
 use TLS\Enums\CipherSuite;
 use TLS\Enums\HandshakeType;
 use TLS\Enums\Version;
+use TLS\Extensions\Extension;
 use TLS\Extensions\ExtensionFactory;
 use TLS\TLSException;
 use TLS\Utils\BufferReader;
@@ -25,8 +26,9 @@ class ClientHello extends Handshake{
     $this->random = openssl_random_pseudo_bytes(32);
   }
 
-  public function setVersion(Version $version): void{
+  public function setVersion(Version $version): static{
     $this->version = $version;
+    return $this;
   }
 
   public function getVersion(): Version{
@@ -35,6 +37,20 @@ class ClientHello extends Handshake{
 
   public function getRandom(): string{
     return $this->random;
+  }
+
+  public function addCipher(CipherSuite $cipher): static{
+    if(in_array($cipher, $this->cipher_suites, true)){
+      throw new TLSException("Cipher suite {$cipher->name} already added to ClientHello");
+    }
+    
+    $this->cipher_suites[] = $cipher;
+    return $this;
+  }
+
+  public function addExtension(Extension $extension): static{
+    $this->extensions[$extension->getType()->value] = $extension;
+    return $this;
   }
 
   public function encode(): string{

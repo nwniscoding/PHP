@@ -9,10 +9,16 @@ class ServerHelloDone extends Handshake{
   }
 
   public function encode(): string{
-    return pack('C', $this->type->value) . str_repeat("\0", 3);
+    return '';
   }
 
-  public static function decode(string $data): self{
-    return new self();
+  public static function decode(string $data): static{
+    return new self;
+  }
+
+  public function jsonSerialize(): array{
+    return [
+      'type' => $this->type->name,
+    ];
   }
 }

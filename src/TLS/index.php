@@ -1,7 +1,10 @@
 <?php
 
+use TLS\Enums\CipherSuite;
 use TLS\Enums\RecordType;
+use TLS\Enums\SignatureAlgorithm;
 use TLS\Enums\Version;
+use TLS\Extensions\SignatureAlgorithms;
 use TLS\Handshakes\ClientHello;
 use TLS\Record;
 spl_autoload_register('spl_autoload');
@@ -13,10 +16,6 @@ function print_hex(string $data): void{
 
   echo "\n";
 }
-
-// use TLS\Record;
-
-// $record = new Record(RecordType::HANDSHAKE, Version::TLS_10);
 
 $data = <<<HEX
 16 03 01 00 74 01 00 00 70 03 03 39 15 c2 33 27
@@ -82,29 +81,30 @@ c5 8c 7d 61 8e bf aa a1 21 e7 d9 e1 f8 7b 88 c3
 fe cf 44 14 d9 b2 79 af 26 ef a6 e0 0e eb 25 ad
 e1 2e 13 a0 18 a0 c9 48 f9 1d ea 2b 13 5d 72 15
 ff 4a fa 2a b5 dd a6 0d 39 6f cd 6f be 73 15 16
-1d f9 c3 56 3c bc d5 0e a1 91 5a d4 16 03 03 01
-4d 0c 00 01 49 03 00 17 41 04 96 9d 9a 79 a9 b4
-89 ae c7 c8 ff d6 37 9a db f4 8e ef cb 7c a6 9a
-fe 53 4e 2c dd 93 06 e4 fd 36 41 58 79 8b d0 7d
-92 7a 41 63 b2 3a 13 bf 97 ac fc d4 f9 da ac 10
-bf a4 31 3c fb 4d 75 63 be 5e 08 04 01 00 13 38
-9e 5a ba 33 82 ac bb 30 86 6b 84 78 6f 3d bd 8e
-7e 29 a4 83 b3 d4 80 04 52 c7 dc 05 a1 24 a9 7f
-25 f5 60 7f aa 53 aa 92 0c fe 01 dd 31 b2 10 dd
-13 38 a8 65 1d b2 fa 5a 61 09 13 d9 74 b8 a0 b1
-42 53 c8 54 c6 0e 68 cb 89 e8 87 03 b5 01 0a 4e
-f6 2a b0 ad 03 7a d2 a0 c2 f4 84 08 40 f4 a9 b1
-5e 77 16 a1 94 60 73 14 fb 6a a7 e4 84 68 54 71
-79 19 ac 23 7c 89 51 45 ba d4 d5 82 8b 19 dc 32
-19 04 e5 fc e2 7c 26 56 0e 49 38 19 1e b8 6e 2d
-06 fa e6 70 3b 2f a4 aa e8 cd c2 6c 54 23 31 5d
-68 dd 12 a6 35 45 48 a3 61 1b eb 1f de 91 a9 31
-df b7 c7 e1 0d d7 52 71 4c d6 c3 20 d7 ab 40 14
-2b f2 76 ef 73 bb c4 07 ff ab ff b8 68 1f 93 0a
-e5 f3 52 25 84 fa fe 26 ae c3 4a 8c 11 f5 f0 2e
-ba fd fa 32 89 21 31 18 0b 15 d2 69 c7 85 22 f0
-10 5d 8e cc 45 8a 30 c7 43 d9 cc bb 30 9c 16 03
-03 00 04 0e 00 00 00
+1d f9 c3 56 3c bc d5 0e a1 91 5a d4 
+16 03 03 01 4d 0c 00 01 49 03 00 17 41 04 96 9d 
+9a 79 a9 b4 89 ae c7 c8 ff d6 37 9a db f4 8e ef
+cb 7c a6 9a fe 53 4e 2c dd 93 06 e4 fd 36 41 58 
+79 8b d0 7d 92 7a 41 63 b2 3a 13 bf 97 ac fc d4 
+f9 da ac 10 bf a4 31 3c fb 4d 75 63 be 5e 08 04 
+01 00 13 38 9e 5a ba 33 82 ac bb 30 86 6b 84 78 
+6f 3d bd 8e 7e 29 a4 83 b3 d4 80 04 52 c7 dc 05 
+a1 24 a9 7f 25 f5 60 7f aa 53 aa 92 0c fe 01 dd 
+31 b2 10 dd 13 38 a8 65 1d b2 fa 5a 61 09 13 d9 
+74 b8 a0 b1 42 53 c8 54 c6 0e 68 cb 89 e8 87 03 
+b5 01 0a 4e f6 2a b0 ad 03 7a d2 a0 c2 f4 84 08
+40 f4 a9 b1 5e 77 16 a1 94 60 73 14 fb 6a a7 e4 
+84 68 54 71 79 19 ac 23 7c 89 51 45 ba d4 d5 82 
+8b 19 dc 32 19 04 e5 fc e2 7c 26 56 0e 49 38 19
+1e b8 6e 2d 06 fa e6 70 3b 2f a4 aa e8 cd c2 6c
+54 23 31 5d 68 dd 12 a6 35 45 48 a3 61 1b eb 1f
+de 91 a9 31 df b7 c7 e1 0d d7 52 71 4c d6 c3 20 
+d7 ab 40 14 2b f2 76 ef 73 bb c4 07 ff ab ff b8 
+68 1f 93 0a e5 f3 52 25 84 fa fe 26 ae c3 4a 8c 
+11 f5 f0 2e ba fd fa 32 89 21 31 18 0b 15 d2 69 
+c7 85 22 f0 10 5d 8e cc 45 8a 30 c7 43 d9 cc bb 
+30 9c 
+16 03 03 00 04 0e 00 00 00
 HEX;
 
 $data = preg_replace('/\s+/', '', $data);
@@ -114,8 +114,21 @@ $data = hex2bin($data);
  * @var Record $record
  */
 foreach(Record::parseRecord($data) as $record){
-  // echo json_encode($record, JSON_PRETTY_PRINT);
-  print_hex($record->getData());
-
-  echo "\n";
+  // echo get_class($record->getData())."\n";
+  // print_hex($record);
+  // echo "\n";
 }
+
+$socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+socket_connect($socket, 'localhost', 9000);
+
+$record = new Record(
+  RecordType::HANDSHAKE, 
+  Version::TLS_10,
+  (new ClientHello())
+  ->addCipher(CipherSuite::TLS_RSA_WITH_AES_128_GCM_SHA256)
+  ->setVersion(Version::TLS_12)
+  ->addExtension(new SignatureAlgorithms(SignatureAlgorithm::RSA_PKCS1_SHA256, SignatureAlgorithm::RSA_PKCS1_SHA384))
+);
+
+socket_write($socket, $record);

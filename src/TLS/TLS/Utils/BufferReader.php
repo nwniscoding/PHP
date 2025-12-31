@@ -1,6 +1,7 @@
 <?php
 namespace TLS\Utils;
 
+use OutOfRangeException;
 use UnderflowException;
 
 class BufferReader{
@@ -59,6 +60,19 @@ class BufferReader{
     $this->offset += $length;
 
     return $data;
+  }
+
+  public function move(int $length): void{
+    $this->hasBufferUnderflowed($length);
+    $this->offset += $length;
+  }
+
+  public function seek(int $position): void{
+    if($position < 0 || $position > $this->size){
+      throw new OutOfRangeException("Buffer seek error: Attempted to seek to position " . $position . " which is outside the buffer size of " . $this->size . " bytes.");
+    }
+
+    $this->offset = $position;
   }
 
   private function hasBufferUnderflowed(int $length): void{

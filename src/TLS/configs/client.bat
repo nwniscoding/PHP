@@ -1,2 +1,10 @@
-$env:SSLKEYLOGFILE="C:\temp\sslkeys.log"
-openssl s_client -connect localhost:6969 -psk 1a2b3c4d5e6f7081 -psk_identity myidentity -tls1_2 -cipher TLS_PSK_WITH_AES_128_CBC_SHA256 -no_ticket -msg -state -debug -keylogfile "./client_key.log"
+openssl s_client ^
+-connect localhost:9000 ^
+-psk 1a2b3c4d5e6f7081 ^
+-psk_identity myidentity ^
+-tls1_2 ^
+-no_ticket ^
+-msg ^
+-state ^
+-debug ^
+-cipher TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA

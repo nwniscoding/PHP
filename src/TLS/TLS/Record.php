@@ -9,6 +9,11 @@ use TLS\Enums\Version;
 use TLS\Handshakes\ClientHello;
 use TLS\Handshakes\ServerHello;
 use TLS\Utils\BufferReader;
+use \strlen;
+use \ord;
+use TLS\Handshakes\Certificate;
+use TLS\Handshakes\ServerHelloDone;
+use TLS\Handshakes\ServerKeyExchange;
 
 class Record implements MessageInterface, JsonSerializable{
   private RecordType $type;
@@ -37,10 +42,10 @@ class Record implements MessageInterface, JsonSerializable{
 
   public static function parseRecord(string $data): Generator{
     $offset = 0;
-    $size = \strlen($data);
+    $size = strlen($data);
 
     while($offset < $size){
-      $record_length = \ord($data[$offset + 3]) << 8 | \ord($data[$offset + 4]);
+      $record_length = ord($data[$offset + 3]) << 8 | ord($data[$offset + 4]);
       $record_data = substr($data, $offset, $record_length + 5);
 
       yield self::decode($record_data);
@@ -54,7 +59,7 @@ class Record implements MessageInterface, JsonSerializable{
       'Cn2a*',
       $this->type->value,
       $this->version->value,
-      \strlen($this->data),
+      strlen($this->data),
       $this->data
     );
   }
@@ -73,10 +78,14 @@ class Record implements MessageInterface, JsonSerializable{
       $handshake_type = HandshakeType::from($handshake >> 24);
       $handshake_length = $handshake & 0xFFFFFF;
 
+
       $record->data = match($handshake_type){
         HandshakeType::CLIENT_HELLO => ClientHello::decode($buffer->read($handshake_length)),
         HandshakeType::SERVER_HELLO => ServerHello::decode($buffer->read($handshake_length)),
-        default => "unknown handshake type",
+        HandshakeType::CERTIFICATE => Certificate::decode($buffer->read($handshake_length)),
+        HandshakeType::SERVER_KEY_EXCHANGE => ServerKeyExchange::decode($buffer->read($handshake_length)),
+        HandshakeType::SERVER_HELLO_DONE => ServerHelloDone::decode($buffer->read($handshake_length)),
+        default => throw new TLSException('Unsupported handshake type: ' . $handshake_type->name),
       };
     }
 

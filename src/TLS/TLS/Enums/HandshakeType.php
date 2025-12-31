@@ -20,5 +20,7 @@ enum HandshakeType : int{
 
   case CLIENT_KEY_EXCHANGE = 16;
 
+  case SERVER_KEY_EXCHANGE = 12;
+
   case FINISHED = 20;
 }
