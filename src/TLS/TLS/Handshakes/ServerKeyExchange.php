@@ -3,7 +3,7 @@ namespace TLS\Handshakes;
 
 use Exception;
 use TLS\Enums\HandshakeType;
-use TLS\Enums\SupportedGroups;
+use TLS\Enums\SupportedGroup;
 use TLS\TLSException;
 use TLS\Utils\BufferReader;
 

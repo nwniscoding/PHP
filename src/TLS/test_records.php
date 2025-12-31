@@ -7,7 +7,7 @@ use TLS\Enums\Version;
 use TLS\Extensions\SignatureAlgorithms;
 use TLS\Handshakes\ClientHello;
 use TLS\Record;
-spl_autoload_register('spl_autoload');
+spl_autoload_register(callback: 'spl_autoload');
 
 function print_hex(string $data): void{
   foreach(str_split(bin2hex($data), 2) as $i=>$byte){

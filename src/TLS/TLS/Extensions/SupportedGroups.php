@@ -2,7 +2,7 @@
 namespace TLS\Extensions;
 
 use TLS\Enums\ExtensionType;
-use TLS\Enums\SupportedGroups as SupportedGroupsEnum;
+use TLS\Enums\SupportedGroup as SupportedGroupsEnum;
 use TLS\TLSException;
 use TLS\Utils\BufferReader;
 

@@ -39,17 +39,13 @@ class ClientHello extends Handshake{
     return $this->random;
   }
 
-  public function addCipher(CipherSuite $cipher): static{
-    if(in_array($cipher, $this->cipher_suites, true)){
-      throw new TLSException("Cipher suite {$cipher->name} already added to ClientHello");
-    }
-    
-    $this->cipher_suites[] = $cipher;
+  public function setCipherSuites(CipherSuite ...$ciphers): static{
+    $this->cipher_suites = $ciphers;
     return $this;
   }
 
-  public function addExtension(Extension $extension): static{
-    $this->extensions[$extension->getType()->value] = $extension;
+  public function setExtensions(Extension ...$extensions): static{
+    $this->extensions = $extensions;
     return $this;
   }
 

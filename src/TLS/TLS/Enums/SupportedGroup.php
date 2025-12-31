@@ -1,7 +1,7 @@
 <?php
 namespace TLS\Enums;
 
-enum SupportedGroups : int{
+enum SupportedGroup : int{
   case SECT163K1 = 1;
   case SECT163R1 = 2;
   case SECT163R2 = 3;
