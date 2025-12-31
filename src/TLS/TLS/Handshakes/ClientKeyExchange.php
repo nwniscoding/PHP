@@ -5,29 +5,24 @@ use TLS\Enums\HandshakeType;
 use TLS\Utils\BufferReader;
 
 class ClientKeyExchange extends Handshake{
-  private array $params = [];
+  private string $data;
 
-  public function __construct(){
+  public function __construct(string $data = ''){
     parent::__construct(HandshakeType::CLIENT_KEY_EXCHANGE);
+    $this->data = $data;
   }
 
   public function encode(): string{
-    return pack('');
+    return $this->data;
   }
 
   public static function decode(string $data): static{
-    $buffer = new BufferReader($data);
-    $handshake = new self;
-
-    
-    
-    return new self;
+    return new self($data);
   }
 
   public function jsonSerialize(): array{
     return [
-      'type' => $this->type->name,
-      'params' => $this->params,
+      'type' => $this->type->name
     ];
   }
 }

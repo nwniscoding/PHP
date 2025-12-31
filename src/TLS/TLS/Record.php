@@ -7,10 +7,9 @@ use TLS\Enums\HandshakeType;
 use TLS\Enums\RecordType;
 use TLS\Enums\Version;
 use TLS\Handshakes\ClientHello;
+use TLS\Handshakes\ClientKeyExchange;
 use TLS\Handshakes\ServerHello;
 use TLS\Utils\BufferReader;
-use \strlen;
-use \ord;
 use TLS\Handshakes\Certificate;
 use TLS\Handshakes\ServerHelloDone;
 use TLS\Handshakes\ServerKeyExchange;
@@ -85,6 +84,7 @@ class Record implements MessageInterface, JsonSerializable{
         HandshakeType::CERTIFICATE => Certificate::decode($buffer->read($handshake_length)),
         HandshakeType::SERVER_KEY_EXCHANGE => ServerKeyExchange::decode($buffer->read($handshake_length)),
         HandshakeType::SERVER_HELLO_DONE => ServerHelloDone::decode($buffer->read($handshake_length)),
+        HandshakeType::CLIENT_KEY_EXCHANGE => ClientKeyExchange::decode($buffer->read($handshake_length)),
         default => throw new TLSException('Unsupported handshake type: ' . $handshake_type->name),
       };
     }

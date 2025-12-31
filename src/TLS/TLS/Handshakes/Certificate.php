@@ -41,10 +41,13 @@ class Certificate extends Handshake{
       $cert_size = $buffer->getU16() << 8 | $buffer->getU8();
       $cert_data = $buffer->read($cert_size);
 
-      $cert_data = chunk_split(base64_encode($cert_data), 64, "\n");
+      $cert_data = rtrim(chunk_split(base64_encode($cert_data), 64, "\n"));
+      
 
       $certificates[] = openssl_x509_read(<<<Certificate
-        -----BEGIN CERTIFICATE-----\n{$cert_data}-----END CERTIFICATE-----
+        -----BEGIN CERTIFICATE-----
+        $cert_data
+        -----END CERTIFICATE-----
         Certificate);
     }
 
