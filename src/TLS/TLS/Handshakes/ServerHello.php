@@ -1,10 +1,11 @@
 <?php
 namespace TLS\Handshakes;
 
-use TLS\Context;
 use TLS\Enums\CipherSuite;
+use TLS\Enums\ExtensionType;
 use TLS\Enums\HandshakeType;
 use TLS\Enums\Version;
+use TLS\Extensions\Extension;
 use TLS\Extensions\ExtensionFactory;
 use TLS\Utils\BufferReader;
 use TLS\Utils\BufferWriter;
@@ -14,17 +15,18 @@ final class ServerHello extends Handshake{
 
   private string $random;
 
-  private string $session_id;
+  private string $session_id = '';
 
   private CipherSuite $cipher_suite;
 
-  private array $extensions;
+  private array $extensions = [];
 
-  public function __construct(
-    Context $context
-  ){
-    parent::__construct($context);
+  public function __construct(){
     $this->random = openssl_random_pseudo_bytes(32);
+  }
+
+  public static function getType(): HandshakeType{
+    return HandshakeType::SERVER_HELLO;
   }
 
   public function setVersion(Version $version): self{
@@ -32,7 +34,7 @@ final class ServerHello extends Handshake{
     return $this;
   }
 
-  public function getversion(): Version{
+  public function getVersion(): Version{
     return $this->version;
   }
 
@@ -40,7 +42,7 @@ final class ServerHello extends Handshake{
     return $this->random;
   }
 
-  public function setSessionId(string $session_id): self{
+  public function setSessionId(string $session_id = ''): self{
     $this->session_id = $session_id;
     return $this;
   }
@@ -58,8 +60,8 @@ final class ServerHello extends Handshake{
     return $this->cipher_suite;
   }
 
-  public function setExtensions(array $extensions): self{
-    $this->extensions = $extensions;
+  public function addExtension(Extension $extension): self{
+    $this->extensions[$extension->getType()->value] = $extension;
     return $this;
   }
 
@@ -67,53 +69,41 @@ final class ServerHello extends Handshake{
     return $this->extensions;
   }
 
-  public static function getType(): HandshakeType{
-    return HandshakeType::SERVER_HELLO;
+  public function hasExtension(ExtensionType $type): bool{
+    return \array_key_exists($type->value, $this->extensions);
   }
 
   public function encode(): BufferWriter{
+    $writer = new BufferWriter;
     $extension = join('', $this->extensions);
 
-    /**
-     * 40 bytes comes from the fixed-size fields in ServerHello:
-     * - 2 bytes: version
-     * - 32 bytes: random
-     * - 1 byte: session id length
-     * - 2 bytes: cipher suite
-     * - 1 byte: compression method
-     * if extensions are present:
-     * - 2 bytes: extensions length
-     */
-    $writer = new BufferWriter(40 + strlen($this->session_id) + strlen($extension));
+    $writer
+    ->setU16($this->version->value)
+    ->write($this->random)
+    ->setU8(strlen($this->session_id))
+    ->write($this->session_id)
+    ->setU16($this->cipher_suite->value)
+    ->setU8(0);
 
-    $writer->setU16($this->version->value);
-    $writer->write($this->random);
-    $writer->setU8(strlen($this->session_id));
-    $writer->write($this->session_id);
-    $writer->setU16($this->cipher_suite->value);
-    $writer->setU8(0); // No compression
-
-    if(empty($this->extensions)){
-      return $writer;
+    if(($str_len = \strlen($extension)) > 0){
+      $writer->setU16($str_len)->write($extension);
     }
-
-    $writer->setU16(strlen($extension));
-    $writer->write($extension);
 
     return $writer;
   }
 
-  public static function decode(BufferReader $reader, Context $context): static{
-    $handshake = new self($context);
+  public static function decode(BufferReader $reader): static{
+    $handshake = new self;
 
     $handshake->version = Version::from($reader->getU16());
     $handshake->random = $reader->read(32);
     $handshake->session_id = $reader->read($reader->getU8());
     $handshake->cipher_suite = CipherSuite::from($reader->getU16());
-    $reader->getU8(); // Ignore compression method
 
+    $reader->move(1);
+
+    // No extension to parse
     if($reader->getOffset() >= $reader->getSize()){
-      $handshake->extensions = [];
       return $handshake;
     }
 
@@ -134,16 +124,5 @@ final class ServerHello extends Handshake{
     }
 
     return $handshake;
-  }
-
-  public function __debugInfo(): array{
-    return [
-      'type' => $this->getType(),
-      'version' => $this->version,
-      'random' => bin2hex($this->random),
-      'session_id' => bin2hex($this->session_id),
-      'cipher_suite' => $this->cipher_suite->name,
-      'extensions' => $this->extensions
-    ];
   }
 }

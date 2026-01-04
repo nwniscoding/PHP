@@ -38,11 +38,4 @@ class SignatureAlgorithms extends Extension{
 
     return new self(...$algorithms);
   }
-
-  public function __debugInfo(): ?array{
-    return [
-      'type' => $this->getType()->name,
-      'supported_algorithms' => array_map(fn($a) => $a->name, $this->supported_algorithms),
-    ];
-  }
 }

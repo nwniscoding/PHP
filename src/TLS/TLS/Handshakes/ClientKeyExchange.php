@@ -1,34 +1,35 @@
 <?php
 namespace TLS\Handshakes;
 
-use Exception;
-use TLS\Context;
 use TLS\Enums\HandshakeType;
 use TLS\Params\Param;
 use TLS\Utils\BufferReader;
 use TLS\Utils\BufferWriter;
-use TLS\Handshakes\ServerHello;
 
-class ClientKeyExchange extends Handshake{
-  private ?Param $param;
+final class ClientKeyExchange extends Handshake{
+  private ?Param $param = null;
 
-  private ?string $identity;
+  private ?string $identity = null;
 
-  public function __construct(Context $context){
-    parent::__construct($context);
+  private BufferReader $raw_data;
+
+  public static function getType(): HandshakeType{
+    return HandshakeType::CLIENT_KEY_EXCHANGE;
   }
 
   public function setParam(Param $param): self{
     $this->param = $param;
+    
     return $this;
   }
 
   public function getParam(): ?Param{
-    return null;
+    return $this->param;
   }
 
   public function setPSKIdentity(string $identity): self{
     $this->identity = $identity;
+    
     return $this;
   }
 
@@ -37,30 +38,37 @@ class ClientKeyExchange extends Handshake{
   }
 
   public function encode(): BufferWriter{
-    /** @var ServerHello */
-    $server_hello = $this->context->getHandshake(HandshakeType::SERVER_HELLO);
-    $metadata = $server_hello->getCipherSuite()->metadata();
     $writer = new BufferWriter;
 
-    if($metadata['authentication'] === 'PSK'){
+    if($this->identity !== null){
       $writer
       ->setU16(strlen($this->identity))
       ->write($this->identity);
     }
-    else{
+
+    if($this->param !== null){
       $writer->write($this->param);
     }
 
     return $writer;
   }
 
-  public static function decode(BufferReader $reader, Context $context): static{
-    $handshake = new self($context);
+  public static function decode(BufferReader $reader): static{
+    $handshake = new self;
+
+    $handshake->raw_data = $reader;
 
     return $handshake;
   }
 
-  public static function getType(): HandshakeType{
-    return HandshakeType::CLIENT_KEY_EXCHANGE;
+  private function initRawData(ServerHello $server_hello): void{
+    $cipher = $server_hello->getCipherSuite();
+
+    if($cipher->metadata()['authentication'] === 'PSK'){
+      $identity_length = $this->raw_data->getU16();
+      $this->identity = $this->raw_data->read($identity_length);
+    }
+
+    
   }
 }

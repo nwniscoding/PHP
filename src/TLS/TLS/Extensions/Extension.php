@@ -23,15 +23,9 @@ abstract class Extension{
     $writer = new BufferWriter;
 
     $writer->setU16($this->type->value);
-    $writer->setU16(strlen($data));
+    $writer->setU16(\strlen($data));
     $writer->write($data);
 
     return (string) $writer;
-  }
-
-  public function __debugInfo(): ?array{
-    return [
-      'type' => $this->getType()->name,
-    ];
   }
 }

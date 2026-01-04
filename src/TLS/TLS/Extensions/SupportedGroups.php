@@ -46,11 +46,4 @@ class SupportedGroups extends Extension{
     
     return new self(...$groups);
   }
-
-  public function __debugInfo(): ?array{
-    return [
-      'type' => $this->getType()->name,
-      'groups' => array_map(fn($g) => $g->name, $this->groups),
-    ];
-  }
 }
