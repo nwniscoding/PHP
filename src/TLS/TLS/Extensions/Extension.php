@@ -8,7 +8,7 @@ use TLS\Utils\BufferReader;
 use TLS\Utils\BufferWriter;
 
 abstract class Extension{
-  public function __construct(protected readonly ExtensionType $type){}
+  public function __construct(protected ExtensionType $type){}
 
   public function getType(): ExtensionType{
     return $this->type;

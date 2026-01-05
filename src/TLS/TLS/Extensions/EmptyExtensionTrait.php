@@ -8,6 +8,7 @@ use TLS\Utils\BufferWriter;
  * Trait for extensions with no data
  */
 trait EmptyExtensionTrait{
+
   public function encode(): BufferWriter{
     return new BufferWriter('');
   }

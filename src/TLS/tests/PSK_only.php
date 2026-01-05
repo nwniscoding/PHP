@@ -5,6 +5,7 @@ use TLS\Enums\HandshakeType;
 use TLS\Enums\RecordType;
 use TLS\Enums\Version;
 use TLS\Extensions\EncryptThenMAC;
+use TLS\Extensions\ExtendedMasterSecret;
 use TLS\Handshakes\ClientHello;
 use TLS\Handshakes\ClientKeyExchange;
 use TLS\Handshakes\Finished;
@@ -40,6 +41,7 @@ $client_hello
 ->setVersion(Version::TLS_12)
 ->addCipherSuite($cipher)
 ->addExtension(new EncryptThenMAC())
+->addExtension(new ExtendedMasterSecret())
 ; // Disable this line to test without ETM
 
 $handshakes[] = $client_hello;
@@ -73,13 +75,24 @@ socket_write(
   Record::changeCipherSpec(Version::TLS_12)
 );
 
-$master_secret = Crypto::PRF(
-  $cipher,
-  $premaster_secret,
-  'master secret',
-  "$client_random$server_random",
-  48
-);
+if($client_hello->hasExtension(ExtensionType::EXTENDED_MASTER_SECRET)){
+  $master_secret = Crypto::PRF(
+    $cipher,
+    $premaster_secret,
+    'extended master secret',
+    hash('sha256', join('', $handshakes), true),
+    48
+  );
+}
+else{
+  $master_secret = Crypto::PRF(
+    $cipher,
+    $premaster_secret,
+    'master secret',
+    "$client_random$server_random",
+    48
+  );
+}
 
 $client = Crypto::generateKey(
   $cipher,
