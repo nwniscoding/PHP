@@ -1,6 +1,7 @@
 <?php
 namespace TLS\Utils;
 
+use Deprecated;
 use TLS\Enums\CipherSuite;
 use TLS\Record;
 
@@ -9,11 +10,12 @@ final class Crypto{
     $seed = "$label$data";
     $a = $seed;
     $output = '';
-    $metadata = $cipher->metadata();
+
+    $hash = substr($cipher->name, strrpos($cipher->name, '_') + 1);
 
     while(strlen($output) < $length){
-      $a = hash_hmac($metadata['hash'], $a, $secret, true);
-      $output .= hash_hmac($metadata['hash'], "$a$seed", $secret, true);
+      $a = hash_hmac($hash, $a, $secret, true);
+      $output .= hash_hmac($hash, "$a$seed", $secret, true);
     }
 
     return substr($output, 0, $length);
@@ -30,6 +32,7 @@ final class Crypto{
     );
   }
 
+  #[Deprecated('Generate key is outdated. Use Crypto/Cipher instead')]
   public static function generateKey(CipherSuite $cipher, string $master_secret, string $client_random, string $server_random, int $length = 128): array{
     $metadata = $cipher->metadata();
 

@@ -1,20 +1,25 @@
 <?php
 namespace TLS\Handshakes;
 
+use TLS\Context;
 use TLS\Enums\HandshakeType;
 use TLS\Params\Param;
 use TLS\Utils\BufferReader;
 use TLS\Utils\BufferWriter;
 
 final class ClientKeyExchange extends Handshake{
-  private ?string $param = null;
+  private ?Param $param = null;
 
   private ?string $identity = null;
 
-  private BufferReader $raw_data;
-
   public static function getType(): HandshakeType{
     return HandshakeType::CLIENT_KEY_EXCHANGE;
+  }
+
+  public function setParam(Param $param): self{
+    $this->param = $param;
+
+    return $this;
   }
 
   public function setPSKIdentity(string $identity): self{
@@ -43,30 +48,9 @@ final class ClientKeyExchange extends Handshake{
     return $writer;
   }
 
-  public static function decode(BufferReader $reader): static{
-    $handshake = new self;
-
-    $handshake->raw_data = $reader;
+  public static function decode(BufferReader $reader, Context $context): static{
+    $handshake = new self($context);
 
     return $handshake;
-  }
-
-  private function initRawData(ServerHello $server_hello): void{
-    $cipher = $server_hello->getCipherSuite();
-
-    if(str_contains($cipher->name, 'PSK')){
-      $identity_length = $this->raw_data->getU16();
-      $this->identity = $this->raw_data->read($identity_length);
-    }
-    
-    if(str_contains($cipher->name, 'ECDHE')){
-      $this->param = $this->raw_data->read($this->raw_data->getU8());
-    }
-    else if(str_contains($cipher->name, 'DHE')){
-      $this->param = $this->raw_data->read($this->raw_data->getU16());
-    }
-    else if(str_contains($cipher->name, 'RSA')){
-      $this->param = $this->raw_data->read($this->raw_data->getU16());
-    }
   }
 }

@@ -1,6 +1,7 @@
 <?php
 namespace TLS\Handshakes;
 
+use TLS\Context;
 use TLS\Enums\HandshakeType;
 use TLS\Utils\BufferReader;
 use TLS\Utils\BufferWriter;
@@ -14,8 +15,8 @@ final class ServerHelloDone extends Handshake{
     return new BufferWriter;
   }
 
-  public static function decode(BufferReader $reader): static{
-    $handshake = new self;
+  public static function decode(BufferReader $reader, Context $context): static{
+    $handshake = new self($context);
 
     return $handshake;
   }

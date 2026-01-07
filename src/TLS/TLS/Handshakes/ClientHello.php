@@ -2,6 +2,7 @@
 namespace TLS\Handshakes;
 
 use SplObjectStorage;
+use TLS\Context;
 use TLS\Enums\CipherSuite;
 use TLS\Enums\ExtensionType;
 use TLS\Enums\HandshakeType;
@@ -22,7 +23,8 @@ final class ClientHello extends Handshake{
 
   private array $extensions = [];
 
-  public function __construct(){
+  public function __construct(Context $context){
+    parent::__construct($context);
     $this->random = openssl_random_pseudo_bytes(32);
   }
 
@@ -95,8 +97,8 @@ final class ClientHello extends Handshake{
     ->write($extension);
   }
 
-  public static function decode(BufferReader $reader): static{
-    $handshake = new self;
+  public static function decode(BufferReader $reader, Context $context): static{
+    $handshake = new self($context);
 
     $handshake->version = Version::from($reader->getU16());
     $handshake->random = $reader->read(32);

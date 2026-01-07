@@ -1,15 +1,26 @@
 <?php
+
+use TLS\Context;
 use TLS\Enums\CipherSuite;
 use TLS\Enums\ExtensionType;
 use TLS\Enums\HandshakeType;
 use TLS\Enums\RecordType;
+use TLS\Enums\SignatureAlgorithm;
+use TLS\Enums\SupportedGroup;
 use TLS\Enums\Version;
 use TLS\Extensions\EncryptThenMAC;
 use TLS\Extensions\ExtendedMasterSecret;
+use TLS\Extensions\SignatureAlgorithms;
+use TLS\Extensions\SupportedGroups;
+use TLS\Handshakes\Certificate;
 use TLS\Handshakes\ClientHello;
 use TLS\Handshakes\ClientKeyExchange;
 use TLS\Handshakes\Finished;
 use TLS\Handshakes\Handshake;
+use TLS\Handshakes\ServerHello;
+use TLS\Handshakes\ServerHelloDone;
+use TLS\Handshakes\ServerKeyExchange;
+use TLS\Params\RSAParam;
 use TLS\Record;
 use TLS\Utils\Crypto;
 
@@ -21,6 +32,7 @@ spl_autoload_register('spl_autoload');
 
 $handshakes = [];
 $cipher = CipherSuite::TLS_PSK_WITH_AES_128_CBC_SHA256;
+$cipher = CipherSuite::TLS_RSA_PSK_WITH_AES_128_CBC_SHA256;
 $psk = hex2bin('1a2b3c4d5e6f7081');
 $psk_identity = 'myidentity';
 $psk_len = strlen($psk);
@@ -35,11 +47,17 @@ $premaster_secret = pack(
 );
 
 socket_connect($socket, 'localhost', 9000);
+$context = new Context(Version::TLS_12);
 
-$client_hello = new ClientHello();
+$client_hello = new ClientHello($context);
 $client_hello
 ->setVersion(Version::TLS_12)
 ->addCipherSuite($cipher)
+->addExtension(new SignatureAlgorithms(
+  SignatureAlgorithm::RSA_PSS_RSAE_SHA256,
+  SignatureAlgorithm::RSA_PKCS1_SHA256,
+  SignatureAlgorithm::RSA_PSS_PSS_SHA256
+))
 ->addExtension(new EncryptThenMAC())
 ->addExtension(new ExtendedMasterSecret())
 ; // Disable this line to test without ETM
@@ -51,15 +69,20 @@ socket_write(
   Record::handshake(Version::TLS_12, $client_hello)
 );
 
-foreach(Record::parse(socket_read($socket, 8192)) as $record){
+foreach(Record::parse(socket_read($socket, 8192), $context) as $record){
   if($record->getType() === RecordType::HANDSHAKE){
-    $handshakes[] = $handshake = $record->getPayload();
+    $payload = $handshakes[] = $record->getPayload();
 
-    if($handshake->getType() === HandshakeType::SERVER_HELLO) $server_hello = $handshake;
+    if($payload instanceof ServerHello) $server_hello = $payload;
+    else if($payload instanceof ServerKeyExchange) $server_key_exchange = $payload;
+    else if($payload instanceof Certificate) $certificate = $payload;
+  }
+  else if($record->getType() === RecordType::ALERT){
+    die("Received ALERT from server. Terminating connection.\n");
   }
 }
 
-$client_key_exchange = new ClientKeyExchange();
+$client_key_exchange = new ClientKeyExchange($context);
 $client_key_exchange
 ->setPSKIdentity($psk_identity);
 
@@ -67,7 +90,16 @@ $server_hello = $handshakes[1];
 $handshakes[] = $client_key_exchange;
 
 $client_random = $client_hello->getRandom();
-$server_random = substr($server_hello, 6, 32);
+$server_random = $server_hello->getRandom();
+
+if(str_contains($cipher->name, 'RSA')){
+  $premaster_secret = openssl_random_pseudo_bytes(48);
+  $premaster_secret[0] = chr(0x03);
+  $premaster_secret[1] = chr(0x03);
+
+  openssl_public_encrypt($premaster_secret, $enc_data, $certificate->getCertificate(0));
+  $client_key_exchange->setParam(new RSAParam($enc_data));
+}
 
 socket_write(
   $socket, 
@@ -110,7 +142,7 @@ $verify_data = Crypto::PRF(
   12
 );
 
-$finished = new Finished();
+$finished = new Finished($context);
 $finished->createMAC($cipher, $master_secret, 'client', $handshakes);
 
 if($client_hello->hasExtension(ExtensionType::ENCRYPT_THEN_MAC)){
@@ -158,6 +190,4 @@ socket_write(
   Record::handshake(Version::TLS_12, $iv.$ciphertext)
 );
 
-sleep(5);
-
-socket_write($socket, 'test');
+sleep(2);

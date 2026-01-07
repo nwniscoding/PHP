@@ -5,8 +5,10 @@ use Generator;
 use TLS\Enums\HandshakeType;
 use TLS\Enums\RecordType;
 use TLS\Enums\Version;
+use TLS\Handshakes\Certificate;
 use TLS\Handshakes\ClientHello;
 use TLS\Handshakes\Handshake;
+use TLS\Handshakes\HandshakeFactory;
 use TLS\Handshakes\ServerHello;
 use TLS\Handshakes\ServerHelloDone;
 use TLS\Utils\BufferReader;
@@ -26,7 +28,7 @@ class Record{
     return $this->version;
   }
 
-  public function getPayload(): mixed{
+  public function getPayload(): string|Handshake{
     return $this->payload;
   }
 
@@ -50,15 +52,18 @@ class Record{
     );
   }
 
-  public static function parse(string $data): ?Generator{
+  /**
+   * @return ?Generator<int, Record>
+   */
+  public static function parse(string $data, Context $context): ?Generator{
     $reader = new BufferReader($data);
 
     while($reader->getOffset() < $reader->getSize()){
-      yield self::decode($reader);
+      yield self::decode($reader, $context);
     }
   }
 
-  public static function decode(BufferReader $data): static{
+  public static function decode(BufferReader $data, Context $context): static{
     $type = RecordType::from($data->getU8());
     $version = Version::from($data->getU16());
     $length = $data->getU16();
@@ -68,15 +73,7 @@ class Record{
       $handshake_length = $data->getU24();
       $handshake_data = $data->read($handshake_length);
 
-      $payload = match($handshake_type){
-        HandshakeType::CLIENT_HELLO => ClientHello::decode($handshake_data),
-        HandshakeType::SERVER_HELLO => ServerHello::decode($handshake_data),
-        // HandshakeType::CERTIFICATE => Certificate::decode($handshake_data),
-        // HandshakeType::CLIENT_KEY_EXCHANGE => ClientKeyExchange::decode($handshake_data),
-        // HandshakeType::SERVER_KEY_EXCHANGE => ServerKeyExchange::decode($handshake_data),
-        HandshakeType::SERVER_HELLO_DONE => ServerHelloDone::decode($handshake_data),
-        default => throw new \Exception("Unsupported handshake type: " . $handshake_type->name),
-      };
+      $payload = HandshakeFactory::create($handshake_type, new BufferReader($handshake_data), $context);
     }
     else{
       $payload = $data->read($length);

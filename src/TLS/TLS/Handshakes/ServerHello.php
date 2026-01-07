@@ -1,6 +1,7 @@
 <?php
 namespace TLS\Handshakes;
 
+use TLS\Context;
 use TLS\Enums\CipherSuite;
 use TLS\Enums\ExtensionType;
 use TLS\Enums\HandshakeType;
@@ -92,8 +93,8 @@ final class ServerHello extends Handshake{
     return $writer;
   }
 
-  public static function decode(BufferReader $reader): static{
-    $handshake = new self;
+  public static function decode(BufferReader $reader, Context $context): static{
+    $handshake = new self($context);
 
     $handshake->version = Version::from($reader->getU16());
     $handshake->random = $reader->read(32);

@@ -1,5 +1,8 @@
 <?php
 namespace TLS\Enums;
+
+use Deprecated;
+
 /**
  * Enumeration of TLS Cipher Suites as per IANA registry.
  * 
@@ -711,6 +714,7 @@ enum CipherSuite : int{
   
   case TLS_ECDHE_PSK_WITH_AES_128_CCM_SHA256 = 0xD005;
 
+  #[Deprecated("The method is bad")]
   public function metadata(): array{
     $name = explode('_', $this->name);
     $metadata = [];
@@ -735,5 +739,18 @@ enum CipherSuite : int{
     $metadata['encryption'] = join('-', $name);
     
     return $metadata;
+  }
+
+  public function isAEAD(): bool{
+    return str_contains($this->name, 'GCM');
+  }
+
+  public function getEncryption(): string{
+    $size = strlen($this->name);
+    return substr($this->name, strpos($this->name, 'WITH') + 5, -($size - strrpos($this->name, '_')));
+  }
+
+  public function getHash(): string{
+    return substr($this->name, strrpos($this->name, '_') + 1);
   }
 }
