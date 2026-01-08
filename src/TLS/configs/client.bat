@@ -7,4 +7,4 @@ openssl s_client ^
 -msg ^
 -state ^
 -debug ^
--cipher TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA
+-cipher TLS_RSA_PSK_WITH_AES_128_CBC_SHA256

@@ -27,9 +27,18 @@ final class Certificate extends Handshake{
 
     foreach($this->certificates as $certificate){
       openssl_x509_export($certificate, $output);
+
+      $output = preg_split("/\n/", $output);
+
+      array_shift($output);
+      array_pop($output);
+      array_pop($output);
+
+      $output = base64_decode(join('', $output));
+
       $size = strlen($output);
 
-      $total_size += $size;
+      $total_size += $size + 3;
       $writer
       ->setU24($size)
       ->write($output);
@@ -46,8 +55,8 @@ final class Certificate extends Handshake{
 
     while($total_size > 0){
       $cert_size = $reader->getU24();
-      $cert_data = base64_encode($reader->read($cert_size));
-      
+      $cert_data = base64_encode($data = $reader->read($cert_size));
+
       $handshake->certificates[] = openssl_x509_read(
         <<<CERTIFICATE
         -----BEGIN CERTIFICATE-----

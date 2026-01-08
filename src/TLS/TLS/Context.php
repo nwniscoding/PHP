@@ -38,6 +38,11 @@ final class Context{
     return $this->handshakes[$type->value] ?? null;
   }
 
+
+  public function getHandshakes(): array{
+    return $this->handshakes;
+  }
+
   public function addHandshake(Handshake $handshake): void{
     $this->handshakes[$handshake->getType()->value] = $handshake;
   }

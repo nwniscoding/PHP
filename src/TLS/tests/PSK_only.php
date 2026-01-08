@@ -58,11 +58,13 @@ $client_hello
   SignatureAlgorithm::RSA_PKCS1_SHA256,
   SignatureAlgorithm::RSA_PSS_PSS_SHA256
 ))
-->addExtension(new EncryptThenMAC())
-->addExtension(new ExtendedMasterSecret())
+// ->addExtension(new EncryptThenMAC())
+// ->addExtension(new ExtendedMasterSecret())
 ; // Disable this line to test without ETM
 
 $handshakes[] = $client_hello;
+
+$context->addHandshake($client_hello);
 
 socket_write(
   $socket, 
@@ -72,6 +74,8 @@ socket_write(
 foreach(Record::parse(socket_read($socket, 8192), $context) as $record){
   if($record->getType() === RecordType::HANDSHAKE){
     $payload = $handshakes[] = $record->getPayload();
+
+    $context->addHandshake($payload);
 
     if($payload instanceof ServerHello) $server_hello = $payload;
     else if($payload instanceof ServerKeyExchange) $server_key_exchange = $payload;
@@ -92,12 +96,18 @@ $handshakes[] = $client_key_exchange;
 $client_random = $client_hello->getRandom();
 $server_random = $server_hello->getRandom();
 
-if(str_contains($cipher->name, 'RSA')){
-  $premaster_secret = openssl_random_pseudo_bytes(48);
-  $premaster_secret[0] = chr(0x03);
-  $premaster_secret[1] = chr(0x03);
+if(str_contains($cipher->name, 'RSA_PSK')){
+  $generated_secret = openssl_random_pseudo_bytes(48);
 
-  openssl_public_encrypt($premaster_secret, $enc_data, $certificate->getCertificate(0));
+  $premaster_secret = pack(
+    'na*na*',
+    strlen($generated_secret),
+    $generated_secret,
+    $psk_len,
+    $psk
+  );
+
+  openssl_public_encrypt($generated_secret, $enc_data, $certificate->getCertificate(0), OPENSSL_PKCS1_PADDING);
   $client_key_exchange->setParam(new RSAParam($enc_data));
 }
 
@@ -134,6 +144,7 @@ $client = Crypto::generateKey(
 )['client'];
 
 $iv = openssl_random_pseudo_bytes(16);
+
 $verify_data = Crypto::PRF(
   $cipher,
   $master_secret,
