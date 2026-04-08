@@ -42,6 +42,12 @@ abstract class Reader{
   abstract public function rewind() : void;
 
   /**
+   * Checks if the end of the stream has been reached.
+   * @return bool True if the end of the stream is reached, false otherwise
+   */
+  abstract public function EOF() : bool;
+
+  /**
    * Read a specified number of bytes from the stream and return it as a string.
    * @param int $length Number of bytes to read
    * @param ?int $offset Optional offset to read from (can be int or null)

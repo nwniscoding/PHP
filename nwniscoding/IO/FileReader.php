@@ -69,6 +69,14 @@ final class FileReader extends Reader{
   }
 
   /**
+   * Check if the end of the file has been reached.
+   * @return bool True if the end of the file is reached, false otherwise
+   */
+  public function EOF() : bool{
+    return $this->fileStream->eof();
+  }
+
+  /**
    * Read a specified number of bytes from the file, optionally from a specific offset.
    * @param int $length The number of bytes to read
    * @param int|null $offset The offset to read from, or null to read from the current position
