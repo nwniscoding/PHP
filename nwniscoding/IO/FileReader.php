@@ -77,6 +77,18 @@ final class FileReader extends Reader{
   }
 
   /**
+   * Read all data from the file.
+   * @return string The entire file content
+   */
+  public function readData() : string{
+    $offset = $this->tell();
+    $this->rewind();
+    $data = $this->fileStream->fread($this->getSize());
+    $this->seek($offset);
+    return $data;
+  }
+
+  /**
    * Read a specified number of bytes from the file, optionally from a specific offset.
    * @param int $length The number of bytes to read
    * @param int|null $offset The offset to read from, or null to read from the current position

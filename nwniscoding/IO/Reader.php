@@ -48,6 +48,12 @@ abstract class Reader{
   abstract public function EOF() : bool;
 
   /**
+   * Read all data from the buffer.
+   * @return string The entire buffer content
+   */
+  abstract public function readData() : string;
+
+  /**
    * Read a specified number of bytes from the stream and return it as a string.
    * @param int $length Number of bytes to read
    * @param ?int $offset Optional offset to read from (can be int or null)

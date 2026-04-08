@@ -90,6 +90,14 @@ final class BufferReader extends Reader{
   }
 
   /**
+   * Read all data from the buffer.
+   * @return string The entire buffer content
+   */
+  public function readData() : string{
+    return $this->buffer;
+  }
+
+  /**
    * Extract a portion of the buffer as a new BufferReader.
    * @param int $length The number of bytes to extract
    * @param ?int $offset The offset to start extracting from, or null to use the current offset
@@ -110,7 +118,13 @@ final class BufferReader extends Reader{
       throw new OutOfBoundsException("Offset is out of bounds");
     }
 
-    return new self(substr($this->buffer, $offset ?? $this->offset, $length));
+    $newInstance = new self(substr($this->buffer, $offset ?? $this->offset, $length));
+
+    if($offset === null){
+      $this->offset += $length;
+    }
+
+    return $newInstance;
   }
 
   /**
