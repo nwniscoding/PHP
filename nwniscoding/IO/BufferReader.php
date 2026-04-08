@@ -90,6 +90,30 @@ final class BufferReader extends Reader{
   }
 
   /**
+   * Extract a portion of the buffer as a new BufferReader.
+   * @param int $length The number of bytes to extract
+   * @param ?int $offset The offset to start extracting from, or null to use the current offset
+   * @throws InvalidArgumentException If the length is negative
+   * @throws OutOfBoundsException If the offset is out of bounds
+   * @return BufferReader A new BufferReader containing the extracted data
+   */
+  public function extract(int $length, ?int $offset = null) : self{
+    if($length < 0){
+      throw new InvalidArgumentException("Length must be non-negative");
+    }
+
+    if($offset === null && $this->offset + $length > $this->size){
+      throw new OutOfBoundsException("Length exceeds available data");
+    }
+
+    if($offset < 0 || $offset + $length > $this->size){
+      throw new OutOfBoundsException("Offset is out of bounds");
+    }
+
+    return new self(substr($this->buffer, $offset ?? $this->offset, $length));
+  }
+
+  /**
    * Reada specified number of bytes from the buffer at the current offset or a given offset.
    * @param int $length The number of bytes to read
    * @param mixed $offset The offset to read from, or null to read from the current offset
