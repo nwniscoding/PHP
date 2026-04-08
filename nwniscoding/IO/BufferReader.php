@@ -82,6 +82,14 @@ final class BufferReader extends Reader{
   }
 
   /**
+   * Check if the end of the buffer has been reached.
+   * @return bool True if the end of the buffer is reached, false otherwise
+   */
+  public function EOF() : bool{
+    return $this->offset >= $this->size;
+  }
+
+  /**
    * Reada specified number of bytes from the buffer at the current offset or a given offset.
    * @param int $length The number of bytes to read
    * @param mixed $offset The offset to read from, or null to read from the current offset
