@@ -1,0 +1,21 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "openssl" : {
+			"path" : "C:/openssl/3.6.0/",
+			"config" : "C:/openssl/openssl.cnf",
+			"type" : "ec"
+		},
+		"php" : {
+			"path" : "C:/php/8.5.2/"
+		},
+    "terminal.integrated.env.windows": {
+			"OPENSSL_CONF" : "${config:openssl.config}",
+			"PATH" : "${env:PATH};${config:php.path};${config:openssl.path}"
+		}
+  }
+}
