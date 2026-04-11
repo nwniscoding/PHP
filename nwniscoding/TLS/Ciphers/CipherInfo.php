@@ -4,15 +4,15 @@ namespace nwniscoding\TLS\Ciphers;
 final readonly class CipherInfo{
   public string $keyExchange;
 
-  public string $authentication;
+  public ?string $authentication;
   
   public string $encryption;
 
   public string $mac;
 
-  public function __construct(string $keyExchange, string $authentication, string $encryption, string $mac){
+  public function __construct(string $keyExchange, ?string $authentication, string $encryption, string $mac){
     $this->keyExchange = strtolower($keyExchange);
-    $this->authentication = strtolower($authentication);
+    $this->authentication = strtolower($authentication ?? '');
     $this->encryption = strtolower($encryption);
     $this->mac = strtolower($mac);
   }
