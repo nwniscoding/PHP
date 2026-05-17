@@ -1,0 +1,100 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"editor.tabSize": 2,
+		"php.executablePath": "C:/php/8.5.2/",
+		"openssl" : {
+			"path" : "C:/openssl/3.6.0/",
+			"config" : "C:/openssl/openssl.cnf",
+			"type" : "ec"
+		},
+		"php" : {
+			"path" : "C:/php/8.5.2/"
+		},
+		"terminal.integrated.env.windows": {
+			"OPENSSL_CONF" : "${config:openssl.config}",
+			"PATH" : "${env:PATH};${config:php.path};${config:openssl.path}"
+		}
+	},
+	"tasks": {
+		"version": "2.0.0",
+		"tasks": [
+			{
+				"label" : "Generate EC Key and Cert",
+				"command" : "${config:openssl.path}openssl.exe",
+				"options": {
+					"env": {
+						"OPENSSL_CONF" : "${config:openssl.config}"
+					}
+				},
+				"type": "shell",
+				"args": [
+					"req", "-new", "-x509", 
+					"-days", "365",
+					"-subj", "/",
+					"-newkey", "ec",
+					"-pkeyopt", "ec_paramgen_curve:secp384r1",
+					"-keyout", "keys/ec.key",
+					"-out", "keys/ec.crt",
+					"-nodes"
+				],
+				"problemMatcher": []
+			},
+			{
+				"label": "Generate RSA Key and Cert",
+				"command" : "${config:openssl.path}openssl.exe",
+				"options": {
+					"env": {
+						"OPENSSL_CONF" : "${config:openssl.config}"
+					}
+				},
+				"type": "shell",
+				"args": [
+					"req", "-new", "-x509", 
+					"-days", "365",
+					"-subj", "/CN=localhost",
+					"-newkey", "rsa:2048",
+					"-keyout", "keys/rsa.key",
+					"-out", "keys/rsa.crt",
+					"-nodes",
+					"-addext", "subjectAltName=DNS:localhost",
+					"-addext", "extendedKeyUsage=serverAuth"
+				],
+				"problemMatcher": []
+			},
+			{
+				"label": "Start SSL Server",
+				"command" : "${config:openssl.path}openssl.exe",
+				"type": "shell",
+				"args": [
+					"s_server",
+					"-accept", "9000",
+					"-tls1_3",
+					"-cert", "keys/${config:openssl.type}.crt",
+					"-key", "keys/${config:openssl.type}.key",
+					"-psk", "1a2b3c4d5e6f7081",
+					"-psk_identity", "nwniscoding"
+				],
+				"problemMatcher": []
+			},
+			{
+				"label": "Start SSL Client",
+				"command" : "${config:openssl.path}openssl.exe",
+				"type": "shell",
+				"args": [
+					"s_client",
+					"-connect", "localhost:9000",
+					"-tls1_3",
+					"-psk", "1a2b3c4d5e6f7081",
+					"-psk_identity", "client_identity",
+					"-cipher", "PSK-AES128-CBC-SHA"
+				],
+				"problemMatcher": []
+			}
+		]
+	}
+}

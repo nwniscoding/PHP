@@ -9,18 +9,46 @@ use nwniscoding\IO\BufferWriter;
 use nwniscoding\TLS\Enums\HandshakeType;
 use nwniscoding\TLS\Exceptions\CertificateException;
 use nwniscoding\TLS\HandshakeContext;
+use OpenSSLCertificate;
 
+/**
+ * Certificate class represents the Certificate handshake message in the TLS protocol, which is used to exchange certificates between the client and server during the handshake process. 
+ */
 final readonly class Certificate extends Handshake{
+  /**
+   * The certificates to be exchanged, which is an array of OpenSSL X.509 certificate resources.
+   * @var array<OpenSSLCertificate>
+   */
   public array $certificates;
 
+  /**
+   * Constructs a new Certificate handshake message.
+   * @param array $certificates The certificates to be exchanged, which is an array of OpenSSL X.509 certificate resources.
+   * @throws CertificateException If the array contains any non-OpenSSL X.509 certificate resources.
+   */
   public function __construct(array $certificates){
+    foreach($certificates as $certificate){
+      if(!($certificate instanceof OpenSSLCertificate)){
+        throw new CertificateException('Invalid certificate: expected OpenSSLCertificate resource, got ' . get_debug_type($certificate));
+      }
+    }
+
     $this->certificates = $certificates;
   }
 
+  /**
+   * Get the type of handshake message.
+   * @return HandshakeType The type of the handshake message, which is HandshakeType::CERTIFICATE.
+   */
   public function getType() : HandshakeType{
     return HandshakeType::CERTIFICATE;
   }
 
+  /**
+   * Encode the Certificate handshake message to binary format, which consists of a 3-byte length field followed by the DER-encoded certificates. Each certificate is prefixed with a 3-byte length field.
+   * @return string The binary representation of the Certificate handshake message.
+   * @throws CertificateException If any certificate fails to export or encode properly.
+   */
   public function encode() : string{
     $writer = new BufferWriter();
     $size = 0;
@@ -51,6 +79,14 @@ final readonly class Certificate extends Handshake{
     return $writer->data();
   }
 
+  /**
+   * Decode a Certificate handshake message from binary format, which consists of a 3-byte length field followed by the DER-encoded certificates. Each certificate is prefixed with a 3-byte length field.
+   * @param BufferReader $data The BufferReader to read the Certificate handshake message from.
+   * @param HandshakeContext $context The HandshakeContext to use for decoding the handshake message.
+   * @return Certificate The decoded Certificate handshake message.
+   * @throws CertificateException If any certificate fails to read or decode properly.
+   * @throws LengthMismatchException If the total length of the certificates does not match the length specified in the message.
+   */
   public static function decode(BufferReader $data, HandshakeContext $context) : self{
     $certificates = [];
     $size = $data->readUint24();

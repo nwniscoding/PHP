@@ -2,20 +2,13 @@
 namespace nwniscoding\TLS;
 
 use InvalidArgumentException;
+use nwniscoding\TLS\Ciphers\CipherInfo;
 use nwniscoding\TLS\Enums\ExtensionType;
 use function strlen;
 use function array_key_exists;
+use function chr;
 
 final class KeySchedule{
-  public const string TLS_12_MASTER_SECRET_LABEL = "master secret";
-
-  public const string TLS_12_EXTENDED_MASTER_SECRET_LABEL = "extended master secret";
-
-  public const string TLS_12_KEY_EXPANSION_LABEL = "key expansion";
-
-  public const string TLS_12_CLIENT_FINISHED_LABEL = "client finished";
-
-  public const string TLS_12_SERVER_FINISHED_LABEL = "server finished";
 
   public static function prf(string $secret, string $label, string $seed, int $length, string $hash = 'SHA256') : string{
     $result = '';
@@ -72,5 +65,29 @@ final class KeySchedule{
 
   public static function verifyFinished(string $masterSecret, string $label, HandshakeContext $context) : string{
     return self::prf($masterSecret, $label, $context->getHandshakeHash(), 12, $context->getCipherInfo()->mac);
+  }
+
+  public static function extract(string $ikm, string $salt, CipherInfo $info) : string{
+    if($salt === '') $salt = str_repeat("\0", $info->getMACSize());
+
+    return hash_hmac($info->mac, $ikm, $salt, true);
+  }
+
+  public static function expand(string $secret, string $label, string $context, int $length, CipherInfo $info) : string{
+    $ctx = pack('nCa*Ca*', $length, strlen($label), $label, strlen($context), $context);
+
+    $n = ceil($length / $info->getMACSize());
+    $outputKeyMaterial = '';
+    $t = '';
+
+    for($i = 1; $i <= $n; $i++){
+      $t = hash_hmac($info->mac, $t . $ctx . chr($i), $secret, true);
+      $outputKeyMaterial .= $t;
+    }
+
+    return substr($outputKeyMaterial, 0, $length);
+  }
+
+  public static function deriveTLS13HandshakeSecrets(string $sharedSecret, CipherInfo $info, HandshakeContext $context) : array{
   }
 }

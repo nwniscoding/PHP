@@ -3,6 +3,7 @@ namespace nwniscoding\TLS\Params;
 
 use nwniscoding\IO\BufferReader;
 use nwniscoding\IO\BufferWriter;
+use nwniscoding\TLS\Enums\HandshakeType;
 use function strlen;
 
 final readonly class DHEParam implements Param{
@@ -22,8 +23,8 @@ final readonly class DHEParam implements Param{
     $this->generator = $generator;
   }
 
-  public static function decode(BufferReader $reader, int $type) : static{
-    if($type == self::CLIENT){
+  public static function decode(BufferReader $reader, HandshakeType $type) : static{
+    if($type === HandshakeType::CLIENT_KEY_EXCHANGE){
       $publicKey = $reader->read($reader->readUInt16());
     }
     else{

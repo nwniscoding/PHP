@@ -2,6 +2,7 @@
 namespace nwniscoding\TLS\Extensions;
 
 use nwniscoding\TLS\Enums\HandshakeType;
+use nwniscoding\TLS\Exceptions\TLSEnumException;
 use function strlen;
 
 use nwniscoding\IO\BufferReader;
@@ -22,7 +23,13 @@ abstract readonly class Extension{
     $writer->writeUint16($this->getType()->value);
     $writer->writeUint16(strlen($encode));
     $writer->write($encode);
-
+    
     return $writer->data();
+  }
+
+  protected static function helloCheck(HandshakeType $type) : void{
+    if($type !== HandshakeType::CLIENT_HELLO && $type !== HandshakeType::SERVER_HELLO){
+      throw new TLSEnumException(HandshakeType::class, $type->value, "Extension only allowed in ClientHello and ServerHello");
+    }
   }
 }

@@ -1,14 +1,14 @@
 <?php
 namespace nwniscoding\TLS\Handshakes;
 
+use function strlen;
+use function count;
 use nwniscoding\TLS\Exceptions\InvalidCipherSuiteException;
 use nwniscoding\TLS\Exceptions\InvalidExtensionException;
 use nwniscoding\TLS\Exceptions\LengthMismatchException;
 use nwniscoding\TLS\Exceptions\TLSEnumException;
 use nwniscoding\TLS\Exceptions\TLSException;
 use nwniscoding\TLS\HandshakeContext;
-use function strlen;
-use function count;
 
 use nwniscoding\IO\BufferReader;
 use nwniscoding\IO\BufferWriter;
@@ -69,7 +69,7 @@ final readonly class ClientHello extends Handshake{
       $start = $writer->tell();
 
       foreach($this->extensions as $extension){
-        $writer->write($extension);
+        $writer->write($extension->toBinary(HandshakeType::CLIENT_HELLO));
       }
 
       $end = $writer->tell();

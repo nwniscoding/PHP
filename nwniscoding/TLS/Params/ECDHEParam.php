@@ -1,6 +1,7 @@
 <?php
 namespace nwniscoding\TLS\Params;
 
+use nwniscoding\TLS\Enums\HandshakeType;
 use function strlen;
 use nwniscoding\IO\BufferReader;
 use nwniscoding\IO\BufferWriter;
@@ -9,18 +10,18 @@ use nwniscoding\TLS\Enums\SupportedGroup;
 final readonly class ECDHEParam implements Param{
   public string $publicKey;
 
-  public SupportedGroup $curveId;
+  public ?SupportedGroup $curveId;
 
-  public ?int $curveType = null;
+  public ?int $curveType;
   
-  public function __construct(string $publicKey, SupportedGroup $curveId, ?int $curveType = null){
+  public function __construct(string $publicKey, ?SupportedGroup $curveId = null, ?int $curveType = null){
     $this->publicKey = $publicKey;
     $this->curveId = $curveId;
     $this->curveType = $curveType;
   }
 
-  public static function decode(BufferReader $reader, int $type = Param::SERVER) : static{
-    if($type === Param::CLIENT){
+  public static function decode(BufferReader $reader, HandshakeType $type) : static{
+    if($type === HandshakeType::CLIENT_KEY_EXCHANGE){
       $publicKey = $reader->read($reader->readUint8());
     }
     else{
@@ -43,10 +44,9 @@ final readonly class ECDHEParam implements Param{
       $writer->writeUint16($this->curveId->value);
     }
 
-    
     $writer->writeUint8(strlen($this->publicKey));
     $writer->write($this->publicKey);
-    
+
     return $writer->data();
   }
 }

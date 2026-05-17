@@ -57,7 +57,7 @@ final readonly class ServerHello extends Handshake{
       $start = $writer->tell();
 
       foreach($this->extensions as $extension){
-        $writer->write($extension);
+        $writer->write($extension->toBinary(HandshakeType::SERVER_HELLO));
       }
 
       $end = $writer->tell();

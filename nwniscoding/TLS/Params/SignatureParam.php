@@ -1,6 +1,7 @@
 <?php
 namespace nwniscoding\TLS\Params;
 
+use nwniscoding\TLS\Enums\HandshakeType;
 use function strlen;
 use LogicException;
 
@@ -18,8 +19,8 @@ final readonly class SignatureParam implements Param{
     $this->signature = $signature;
   }
 
-  public static function decode(BufferReader $reader, int $type = Param::SERVER){
-    if($type === Param::CLIENT){
+  public static function decode(BufferReader $reader, HandshakeType $type){
+    if($type === HandshakeType::CLIENT_KEY_EXCHANGE){
       throw new LogicException("SignatureParam is not expected in client context");
     }
 

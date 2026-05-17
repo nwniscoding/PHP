@@ -3,7 +3,7 @@ namespace nwniscoding\TLS\Extensions;
 
 use nwniscoding\IO\BufferReader;
 use nwniscoding\TLS\Enums\ExtensionType;
-use nwniscoding\TLS\Sessions\Session;
+use nwniscoding\TLS\Enums\HandshakeType;
 use RuntimeException;
 
 final readonly class UnknownExtension extends Extension{
@@ -17,11 +17,11 @@ final readonly class UnknownExtension extends Extension{
     return $this->type;
   }
 
-  public static function decode(BufferReader $reader, string $class) : self{
+  public static function decode(BufferReader $reader, HandshakeType $type) : self{
     throw new RuntimeException('Unknown extensions cannot be decoded.');
   }
 
-  protected function encode() : string{
+  protected function encode(HandshakeType $type) : string{
     return $this->data;
   }
 }

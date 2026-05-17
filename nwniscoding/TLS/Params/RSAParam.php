@@ -1,6 +1,7 @@
 <?php
 namespace nwniscoding\TLS\Params;
 
+use nwniscoding\TLS\Enums\HandshakeType;
 use function strlen;
 
 use nwniscoding\IO\BufferReader;
@@ -13,7 +14,7 @@ final readonly class RSAParam implements Param{
     $this->encryptedPreMasterSecret = $encryptedPreMasterSecret;
   }
 
-  public static function decode(BufferReader $reader, int $type) : static{
+  public static function decode(BufferReader $reader, HandshakeType $type) : static{
     return new static($reader->read($reader->readUint16()));
   }
 
